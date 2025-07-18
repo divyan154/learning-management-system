@@ -52,13 +52,11 @@ A complete backend API for a Learning Management System built with Node.js, Expr
 - `GET /api/courses/enrolled/my-courses` - Get enrolled courses (authenticated)
 
 ### Lessons
-- `GET /api/lessons/course/:courseId` - Get lessons for a course (enrolled users)
-- `POST /api/lessons` - Create lesson (admin only)
+- `GET /api/courses/courseId/lessons` - Get lessons for a course (enrolled users)
+- `POST /api/courses/courseId/lessons/create` - Create lesson (admin only)
 
 ### Quizzes
-- `GET /api/quizzes/course/:courseId` - Get quizzes for a course (enrolled users)
-- `POST /api/quizzes` - Create quiz (admin only)
-- `POST /api/quizzes/:id/attempt` - Attempt quiz (enrolled users)
+- `POST /api/courses/courseId/quizzes` - Attempt quiz (enrolled users)
 
 ### Progress
 - `POST /api/progress/lesson/:lessonId/complete` - Mark lesson as completed
