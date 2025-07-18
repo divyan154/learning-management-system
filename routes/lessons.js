@@ -6,10 +6,11 @@ const { authenticate, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 // Get lessons for a course (authenticated users)
-router.get('/course/:courseId', authenticate, lessonController.getLessonsByCourse);
+router.get('', authenticate, lessonController.getLessonsByCourse);
 
 // Create lesson (admin only)
-router.post('/', authenticate, authorize('admin'), [
+router.get("/create", authenticate, authorize('admin'), lessonController.getLessonPage);
+router.post('/create', authenticate, authorize('admin'), [
   body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
   body('videoUrl').isURL().withMessage('Please enter a valid video URL'),
   body('course').isMongoId().withMessage('Please provide a valid course ID'),

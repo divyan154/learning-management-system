@@ -2,6 +2,21 @@ const { validationResult } = require('express-validator');
 const Lesson = require('../models/Lesson');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
+const getLessonPage = async (req, res) => {
+   try {
+      const course = await Course.findById(req.params.id);
+      if (!course) {
+        req.flash('error_msg', 'Course not found');
+        return res.redirect('/dashboard');
+      }
+      
+      res.render('admin/create-lesson', { course });
+    } catch (error) {
+      console.error(error);
+      req.flash('error_msg', 'Error loading page');
+      res.redirect('/dashboard');
+    }
+}
 
 const getLessonsByCourse = async (req, res) => {
   try {
@@ -33,43 +48,31 @@ const getLessonsByCourse = async (req, res) => {
 
 const createLesson = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { title, videoUrl, resourceLinks, course, order } = req.body;
-
-    // Check if course exists
-    const courseExists = await Course.findById(course);
-    if (!courseExists) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
+    const { title, videoUrl, order, resourceLinks } = req.body;
 
     const lesson = await Lesson.create({
       title,
       videoUrl,
-      resourceLinks: resourceLinks || [],
-      course,
-      order
+      order: parseInt(order),
+      course: req.params.id,
+      resourceLinks: resourceLinks ? JSON.parse(resourceLinks) : [],
     });
 
-    // Add lesson to course
-    await Course.findByIdAndUpdate(course, {
-      $addToSet: { lessons: lesson._id }
+    await Course.findByIdAndUpdate(req.params.id, {
+      $addToSet: { lessons: lesson._id },
     });
 
-    res.status(201).json({
-      message: 'Lesson created successfully',
-      lesson
-    });
+    req.flash("success_msg", "Lesson created successfully");
+    res.redirect(`/courses/${req.params.id}/manage`);
   } catch (error) {
-    console.error('Create lesson error:', error);
-    res.status(500).json({ message: 'Server error while creating lesson' });
+    console.error(error);
+    req.flash("error_msg", "Failed to create lesson");
+    res.redirect(`/courses/${req.params.id}/lessons/create`);
   }
 };
 
 module.exports = {
   getLessonsByCourse,
-  createLesson
+  createLesson,
+  getLessonPage
 };

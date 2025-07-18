@@ -8,11 +8,15 @@ const router = express.Router();
 // Get all courses (public)
 router.get('/', courseController.getAllCourses);
 
+router.get("/create", authorize("admin"), (req, res) => {
+  res.render("admin/create-course");
+});
 // Get single course (public)
 router.get('/:id', courseController.getCourse);
 
+
 // Create course (admin only)
-router.post('/', authenticate, authorize('admin'), [
+router.post('/create', authenticate, authorize('admin'), [
   body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
   body('description').trim().isLength({ min: 10, max: 500 }).withMessage('Description must be between 10 and 500 characters'),
   body('instructor').trim().isLength({ min: 2, max: 50 }).withMessage('Instructor name must be between 2 and 50 characters'),
@@ -22,7 +26,8 @@ router.post('/', authenticate, authorize('admin'), [
 // Enroll in course (authenticated users)
 router.post('/:id/enroll', authenticate, courseController.enrollInCourse);
 
+
 // Get enrolled courses (authenticated users)
 router.get('/enrolled/my-courses', authenticate, courseController.getEnrolledCourses);
-
+router.get("/:id/manage",authorize('admin'), courseController.manageCourse);
 module.exports = router;

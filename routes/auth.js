@@ -3,7 +3,8 @@ const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 
 const router = express.Router();
-
+router.get("/login", authController.showLoginPage);
+router.get("/register", authController.showRegistrationPage);
 // Register route
 router.post('/register', [
   body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
@@ -19,5 +20,5 @@ router.post('/login', [
 ], authController.login);
 
 // Logout route
-router.post('/logout', authController.logout);
+router.get('/logout', authController.logout);
 module.exports = router;

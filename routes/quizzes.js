@@ -5,9 +5,12 @@ const { authenticate, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
+
 // Get quizzes for a course (authenticated users)
 router.get('/course/:courseId', authenticate, quizController.getQuizzesByCourse);
 
+// /api/courses/:id/quizzes
+router.get("/:id", authenticate, quizController.showQuizPage);
 // Create quiz (admin only)
 router.post('/', authenticate, authorize('admin'), [
   body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
@@ -21,10 +24,6 @@ router.post('/', authenticate, authorize('admin'), [
 ], quizController.createQuiz);
 
 // Attempt quiz (authenticated users)
-router.post('/:id/attempt', authenticate, [
-  body('answers').isArray().withMessage('Answers must be an array'),
-  body('answers.*.questionId').isMongoId().withMessage('Question ID must be valid'),
-  body('answers.*.selectedOption').isInt({ min: 0 }).withMessage('Selected option must be a valid index')
-], quizController.attemptQuiz);
+router.post('/:id/attempt', authenticate,  quizController.attemptQuiz);
 
 module.exports = router;

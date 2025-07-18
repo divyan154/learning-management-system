@@ -4,111 +4,118 @@ const Enrollment = require('../models/Enrollment');
 const Lesson = require('../models/Lesson');
 const Quiz = require('../models/Quiz');
 
+// const getAllCourses = async (req, res) => {
+//   try {
+//     const courses = await Course.find()
+//       .populate('lessons', 'title')
+//       .populate('quizzes', 'title')
+//       .select('-enrolledUsers');
+
+//     res.json({
+//       message: 'Courses retrieved successfully',
+//       courses
+//     });
+//   } catch (error) {
+//     console.error('Get courses error:', error);
+//     res.status(500).json({ message: 'Server error while fetching courses' });
+//   }
+// };
+
 const getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find()
-      .populate('lessons', 'title')
-      .populate('quizzes', 'title')
-      .select('-enrolledUsers');
-
-    res.json({
-      message: 'Courses retrieved successfully',
-      courses
-    });
+    const courses = await Course.find();
+    res.render("courses/index", { courses });
   } catch (error) {
-    console.error('Get courses error:', error);
-    res.status(500).json({ message: 'Server error while fetching courses' });
+    console.error(error);
+    res.render("courses/index", { courses: [] });
   }
 };
+// router.get("/courses", async (req, res) => {
+//   try {
+//     const courses = await Course.find();
+//     res.render("courses/index", { courses });
+//   } catch (error) {
+//     console.error(error);
+//     res.render("courses/index", { courses: [] });
+//   }
+// });
 
 const getCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
-      .populate('lessons', 'title videoUrl resourceLinks order')
-      .populate('quizzes', 'title description passingScore timeLimit');
-
+      .populate("lessons")
+      .populate("quizzes");
+    console.log("Course found:", course);
     if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
+      req.flash("error_msg", "Course not found");
+      return res.redirect("/courses");
     }
 
-    res.json({
-      message: 'Course retrieved successfully',
-      course
-    });
+    let enrollment = null;
+    if (req.user) {
+      enrollment = await Enrollment.findOne({
+        user: req.user.id,
+        course: req.params.id,
+      });
+    }
+
+    res.render("courses/show", { course, enrollment });
   } catch (error) {
-    console.error('Get course error:', error);
-    res.status(500).json({ message: 'Server error while fetching course' });
+    console.error(error);
+    req.flash("error_msg", "Error loading course");
+    res.redirect("/courses");
   }
 };
+
 
 const createCourse = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const { title, description, instructor, price } = req.body;
+      
+      await Course.create({
+        title,
+        description,
+        instructor,
+        price: parseFloat(price),
+        createdBy: req.user.id
+      });
+  
+      req.flash('success_msg', 'Course created successfully');
+      res.redirect('/dashboard');
+    } catch (error) {
+      console.error(error);
+      req.flash('error_msg', 'Failed to create course');
+      res.redirect('/courses/create');
     }
-
-    const { title, description, instructor, price } = req.body;
-
-    const course = await Course.create({
-      title,
-      description,
-      instructor,
-      price,
-      createdBy: req.user._id
-    });
-
-    res.status(201).json({
-      message: 'Course created successfully',
-      course
-    });
-  } catch (error) {
-    console.error('Create course error:', error);
-    res.status(500).json({ message: 'Server error while creating course' });
-  }
 };
+
 
 const enrollInCourse = async (req, res) => {
   try {
-    const courseId = req.params.id;
-    const userId = req.user._id;
-
-    // Check if course exists
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-
-    // Check if user is already enrolled
     const existingEnrollment = await Enrollment.findOne({
-      user: userId,
-      course: courseId
+      user: req.user.id,
+      course: req.params.id
     });
-
+  
     if (existingEnrollment) {
-      return res.status(400).json({ message: 'Already enrolled in this course' });
+      req.flash('error_msg', 'Already enrolled in this course');
+      return res.redirect(`/courses/${req.params.id}`);
     }
-
-    // Create enrollment
-    const enrollment = await Enrollment.create({
-      user: userId,
-      course: courseId
+  
+    await Enrollment.create({
+      user: req.user.id,
+      course: req.params.id
     });
-
-    // Add user to course's enrolled users
-    await Course.findByIdAndUpdate(courseId, {
-      $addToSet: { enrolledUsers: userId }
-    });
-
-    res.status(201).json({
-      message: 'Successfully enrolled in course',
-      enrollment
-    });
+  
+    req.flash('success_msg', 'Successfully enrolled in course');
+    res.redirect(`/courses/${req.params.id}`);
   } catch (error) {
-    console.error('Enrollment error:', error);
-    res.status(500).json({ message: 'Server error during enrollment' });
+    console.error(error);
+    req.flash('error_msg', 'Enrollment failed');
+    res.redirect(`/courses/${req.params.id}`);
   }
-};
+}
+
 
 const getEnrolledCourses = async (req, res) => {
   try {
@@ -126,10 +133,30 @@ const getEnrolledCourses = async (req, res) => {
   }
 };
 
+const manageCourse = async (req, res) => {
+  try {
+      const course = await Course.findById(req.params.id)
+        .populate('lessons')
+        .populate('quizzes');
+      
+      if (!course) {
+        req.flash('error_msg', 'Course not found');
+        return res.redirect('/dashboard');
+      }
+  
+      res.render('admin/manage-course', { course });
+    } catch (error) {
+      console.error(error);
+      req.flash('error_msg', 'Error loading course');
+      res.redirect('/dashboard');
+    }
+}
+
 module.exports = {
   getAllCourses,
   getCourse,
   createCourse,
   enrollInCourse,
   getEnrolledCourses
+  , manageCourse
 };

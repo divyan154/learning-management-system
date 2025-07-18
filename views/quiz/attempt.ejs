@@ -20,7 +20,7 @@
             Passing score: <%= quiz.passingScore %>%
           </div>
 
-          <form method="POST" action="/quiz/<%=quiz._id%>/submit">
+          <form method="POST" action="/api/courses/<%=quiz.course._id%>/quizzes/<%=quiz._id%>/attempt">
             <% quiz.questions.forEach((question, index) => { %>
               <div class="mb-4">
                 <h5>Question <%= index + 1 %></h5>
@@ -51,7 +51,7 @@
               <button type="submit" class="btn btn-success btn-lg">
                 <i class="fas fa-check me-2"></i>Submit Quiz
               </button>
-              <a href="/courses/<%= quiz.course._id %>" class="btn btn-secondary">Cancel</a>
+              <a href="/api/courses/<%= quiz.course._id %>  " class="btn btn-secondary">Cancel</a>
             </div>
           </form>
         </div>

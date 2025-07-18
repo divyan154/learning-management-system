@@ -10,9 +10,9 @@
           Discover thousands of courses, build skills, and advance your career with our comprehensive learning management system.
         </p>
         <div class="d-flex gap-3">
-          <a href="/courses" class="btn btn-light btn-lg">Browse Courses</a>
+          <a href="/api/courses" class="btn btn-light btn-lg">Browse Courses</a>
           <% if (!user) { %>
-            <a href="/register" class="btn btn-outline-light btn-lg">Get Started</a>
+            <a href="/api/auth/register" class="btn btn-outline-light btn-lg">Get Started</a>
           <% } %>
         </div>
       </div>
@@ -48,7 +48,7 @@
               </div>
             </div>
             <div class="card-footer bg-transparent">
-              <a href="/courses/<%= course._id %>" class="btn btn-primary w-100">View Course</a>
+              <a href="/api/courses/<%= course._id %>" class="btn btn-primary w-100">View Course</a>
             </div>
           </div>
         </div>
@@ -56,7 +56,7 @@
     </div>
 
     <div class="text-center mt-4">
-      <a href="/courses" class="btn btn-outline-primary btn-lg">View All Courses</a>
+      <a href="/api/courses" class="btn btn-outline-primary btn-lg">View All Courses</a>
     </div>
   </div>
 </section>

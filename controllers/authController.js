@@ -8,6 +8,13 @@ const generateToken = (id) => {
   });
 };
 
+const showRegistrationPage = (req, res) => { 
+   res.render("auth/register");
+}
+
+const showLoginPage = (req, res) => {
+  res.render("auth/login");
+}
 const register = async (req, res) => {
   console.log("Register request received");
   try {
@@ -102,15 +109,14 @@ const logout = (req, res) => {
   // Clear the cookie
   res.clearCookie("token");
   req.flash("success_msg", "Logged out successfully");
-  res.redirect("/login");
+  res.redirect("/api/auth/login");
 };
-// router.post("/logout", (req, res) => {
-//   res.clearCookie("token");
-//   req.flash("success_msg", "Logged out successfully");
-//   res.redirect("/login");
-// });
+
+
 
 module.exports = {
+  showRegistrationPage,
+  showLoginPage,
   register,
   login,
   logout

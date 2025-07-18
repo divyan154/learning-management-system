@@ -44,7 +44,7 @@ app.use(cookieParser());
 app.use((authenticate));
 // Global variables for templates
 app.use((req, res, next) => {
-  console.log("INside global middleware , req.user:", req.user);
+  // console.log("INside global middleware , req.user:", req.user);
   
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
@@ -85,8 +85,8 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
-app.use('/api/lessons', lessonRoutes);
-app.use('/api/quizzes', quizRoutes);
+app.use('/api/courses/:id/lessons', lessonRoutes);
+app.use('/api/courses/:id/quizzes', quizRoutes);
 app.use('/api/progress', progressRoutes);
 
 // Health check endpoint

@@ -22,7 +22,7 @@
             </div>
           </div>
   <% if (!enrollment) { %>
-  <form method="POST" action="/courses/<%= course._id %>/enroll">
+  <form method="POST" action="/api/courses/<%= course._id %>/enroll">
     <button type="submit" class="btn btn-success mb-3">
       <i class="fas fa-sign-in-alt me-2"></i> Enroll in Course
       </button>
@@ -70,7 +70,7 @@
 
                     <%if (enrollment) {%>
                         
-                       <a href="/quiz/<%= quiz._id %>" class="btn btn-sm btn-primary">
+                       <a href="/api/courses/<%=course._id%>/quizzes/<%= quiz._id %>" class="btn btn-sm btn-primary">
                       <i class="fas fa-play"></i> Take Quiz
                     </a>
                     <%}%>

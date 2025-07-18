@@ -3,6 +3,34 @@ const Quiz = require('../models/Quiz');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 
+
+const showQuizPage = async (req, res) => {
+  // console.log("Request to attempt quiz: recieved", req.params.id);
+try {
+  const quiz = await Quiz.findById(req.params.id).populate("course");
+
+  if (!quiz) {
+    req.flash("error_msg", "Quiz not found");
+    return res.redirect("/courses");
+  }
+
+  // Check enrollment
+  const enrollment = await Enrollment.findOne({
+    user: req.user.id,
+    course: quiz.course._id,
+  });
+
+  if (!enrollment) {
+    req.flash("error_msg", "You must be enrolled in this course");
+    return res.redirect(`/courses/${quiz.course._id}`);
+  }
+
+  res.render("quiz/attempt", { quiz });
+} catch (error) {
+  console.error(error);
+  req.flash("error_msg", "Error loading quiz");
+  res.redirect("/courses");
+} }
 const getQuizzesByCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -84,75 +112,60 @@ const createQuiz = async (req, res) => {
 };
 
 const attemptQuiz = async (req, res) => {
+  console.log("Attempting quiz with ID:", req.params.id); 
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    const quiz = await Quiz.findById(req.params.id);
+    const answers = req.body.answers; // This will be an object, not array
 
-    const { id: quizId } = req.params;
-    const { answers } = req.body;
+    // Convert to array of { questionId, selectedOption }
+    const answerArray = Object.keys(answers).map((index) => ({
+      questionId: quiz.questions[index]._id,
+      selectedOption: parseInt(answers[index]),
+    }));
 
-    // Get quiz with questions
-    const quiz = await Quiz.findById(quizId);
-    if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
-    }
-
-    // Check if user is enrolled in the course
-    const enrollment = await Enrollment.findOne({
-      user: req.user._id,
-      course: quiz.course
-    });
-
-    if (!enrollment) {
-      return res.status(403).json({ message: 'You must be enrolled in this course to attempt this quiz' });
-    }
-
-    // Calculate score
     let correctAnswers = 0;
-    const processedAnswers = answers.map(answer => {
+    const processedAnswers = answerArray.map((answer) => {
       const question = quiz.questions.id(answer.questionId);
-      const isCorrect = question && question.correctAnswer === answer.selectedOption;
-      
+      const isCorrect = question.correctAnswer === answer.selectedOption;
+
       if (isCorrect) correctAnswers++;
 
       return {
         questionId: answer.questionId,
         selectedOption: answer.selectedOption,
-        isCorrect
+        isCorrect,
       };
     });
 
+    // Calculate score
     const score = Math.round((correctAnswers / quiz.questions.length) * 100);
 
-    // Save attempt to enrollment
-    const quizAttempt = {
-      quiz: quizId,
-      score,
-      answers: processedAnswers,
-      attemptedAt: new Date()
-    };
+    // Update enrollment
+    await Enrollment.findOneAndUpdate(
+      { user: req.user.id, course: quiz.course },
+      {
+        $push: {
+          quizAttempts: {
+            quiz: req.params.id,
+            score,
+            answers: processedAnswers,
+          },
+        },
+      }
+    );
 
-    await Enrollment.findByIdAndUpdate(enrollment._id, {
-      $push: { quizAttempts: quizAttempt }
-    });
-
-    res.json({
-      message: 'Quiz submitted successfully',
-      score,
-      correctAnswers,
-      totalQuestions: quiz.questions.length,
-      passed: score >= quiz.passingScore
-    });
+    req.flash("success_msg", `Quiz completed! Score: ${score}%`);
+    res.redirect(`/api/courses/${quiz.course._id}`);
   } catch (error) {
-    console.error('Quiz attempt error:', error);
-    res.status(500).json({ message: 'Server error while submitting quiz' });
+    console.error(error);
+    req.flash("error_msg", "Error submitting quiz");
+    res.redirect(`/quiz/${req.params.id}`);
   }
 };
 
 module.exports = {
   getQuizzesByCourse,
   createQuiz,
-  attemptQuiz
+  attemptQuiz,
+  showQuizPage
 };
