@@ -1,0 +1,117 @@
+<div class="container py-5">
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <h1 class="card-title"><%= course.title %></h1>
+          <p class="text-muted mb-3">
+            <i class="fas fa-user me-2"></i>Instructor: <%= course.instructor %>
+          </p>
+          <p class="card-text"><%= course.description %></p>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-play text-primary me-2"></i>
+                <span><%= course.lessons ? course.lessons.length : 0 %> Lessons</span>
+              </div>
+              <div class="d-flex align-items-center">
+                <i class="fas fa-question-circle text-primary me-2"></i>
+                <span><%= course.quizzes ? course.quizzes.length : 0 %> Quizzes</span>
+              </div>
+            </div>
+          </div>
+  <% if (!enrollment) { %>
+  <form method="POST" action="/courses/<%= course._id %>/enroll">
+    <button type="submit" class="btn btn-success mb-3">
+      <i class="fas fa-sign-in-alt me-2"></i> Enroll in Course
+      </button>
+     </form>
+          <% } %>
+          <% if (enrollment) { %>
+            <div class="alert alert-success">
+              <i class="fas fa-check-circle me-2"></i>
+              You are enrolled in this course! Progress: <%= enrollment.progress %>%
+            </div>
+            <% } %>
+            <% if (course.lessons && course.lessons.length > 0) { %>
+              <div class="accordion mb-4" id="lessonsAccordion">
+                <% course.lessons.sort((a, b) => a.order - b.order).forEach(lesson => { %>
+                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                      <h6 class="mb-1"><%= lesson.title %></h6>
+                      <small class="text-muted">Lesson <%= lesson.order %></small>
+                    </div>
+                    <%if(enrollment){%>
+                    <div>
+                      <a href="<%= lesson.videoUrl %>" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                        <i class="fas fa-play"></i> Watch
+                      </a>
+                      <form method="POST" action="/api/progress/lesson/<%= lesson._id %>/complete" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-success">
+                          <i class="fas fa-check"></i> Complete
+                        </button>   
+                      </form>
+                    </div><%}%>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+
+            <% if (course.quizzes && course.quizzes.length > 0) { %>
+              <div class="accordion" id="quizzesAccordion">
+                <% course.quizzes.forEach(quiz => { %>
+                  <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                      <h6 class="mb-1"><%= quiz.title %></h6>
+                      <small class="text-muted"><%= quiz.description || 'No description' %></small>
+                    </div>
+                   
+
+                    <%if (enrollment) {%>
+                        
+                       <a href="/quiz/<%= quiz._id %>" class="btn btn-sm btn-primary">
+                      <i class="fas fa-play"></i> Take Quiz
+                    </a>
+                    <%}%>
+                   
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+          
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Course Info</h5>
+          <div class="mb-3">
+            <strong>Price:</strong>
+            <span class="badge bg-primary fs-6 ms-2">$<%= course.price %></span>
+          </div>
+          <div class="mb-3">
+            <strong>Instructor:</strong>
+            <p class="mb-0"><%= course.instructor %></p>
+          </div>
+          <div class="mb-3">
+            <strong>Content:</strong>
+            <ul class="list-unstyled mb-0">
+              <li>
+                <i class="fas fa-play text-primary me-2"></i>
+                <%= course.lessons ? course.lessons.length : 0 %> Lessons
+              </li>
+              <li>
+                <i class="fas fa-question-circle text-primary me-2"></i>
+                <%= course.quizzes ? course.quizzes.length : 0 %> Quizzes
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

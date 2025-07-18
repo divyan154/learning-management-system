@@ -1,0 +1,100 @@
+<% const title = 'Admin Dashboard' %>
+
+
+<div class="container py-5">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Admin Dashboard</h1>
+        <a href="/courses/create" class="btn btn-primary">
+          <i class="fas fa-plus me-2"></i>Create Course
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4><%= totalCourses %></h4>
+              <p class="mb-0">Total Courses</p>
+            </div>
+            <i class="fas fa-book fa-2x opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4><%= totalUsers %></h4>
+              <p class="mb-0">Total Users</p>
+            </div>
+            <i class="fas fa-users fa-2x opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h4><%= courses.length %></h4>
+              <p class="mb-0">My Courses</p>
+            </div>
+            <i class="fas fa-graduation-cap fa-2x opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Courses -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">My Courses</h5>
+    </div>
+    <div class="card-body">
+      <% if (courses.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Instructor</th>
+                <th>Price</th>
+                <th>Enrolled Users</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% courses.forEach(function(course) { %>
+                <tr>
+                  <td><%= course.title %></td>
+                  <td><%= course.instructor %></td>
+                  <td>$<%= course.price %></td>
+                  <td><%= course.enrolledUsers ? course.enrolledUsers.length : 0 %></td>
+                  <td>
+                    <a href="/courses/<%= course._id %>/manage" class="btn btn-sm btn-primary">Manage</a>
+                    <a href="/courses/<%= course._id %>" class="btn btn-sm btn-outline-primary">View</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="text-muted">No courses created yet. <a href="/courses/create">Create your first course</a>!</p>
+      <% } %>
+    </div>
+  </div>
+</div>
