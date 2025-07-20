@@ -25,7 +25,7 @@ const expressLayouts = require("express-ejs-layouts");
 app.set('view engine', 'ejs');
 app.use(expressLayouts);
 app.set('layout', 'layout'); // Set default layout
-app.set('views', './views');
+app.set('views', path.join(__dirname, 'views'));
 
 // Serve static files
 app.use(express.static('public'));
